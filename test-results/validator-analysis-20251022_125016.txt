@@ -1,0 +1,55 @@
+╔════════════════════════════════════════════════════════════╗
+║          VALIDATOR ACTIVITY ANALYSIS                       ║
+╚════════════════════════════════════════════════════════════╝
+
+Log file: /Users/ar616n/Documents/ios-app/backup-restore/tests/../test-results/azure-logs-20251022_124529.log
+Generated: Wed Oct 22 12:50:16 MST 2025
+
+🔬 Universal Physics Validator:
+  ✅ DETECTED
+  Activations: 9
+  ❌ Value extraction NOT working
+  ⚠️  No corrections needed (or validator not fixing)
+
+🧮 Universal Math Validator:
+  ✅ DETECTED
+  Activations: 9
+
+🎯 Universal Answer Verification Validator:
+  ✅ DETECTED
+  Activations: 9
+  ✅ Target detection working
+2025-10-22T19:45:46.1431202Z 🎯 Target variable detected: "t"
+2025-10-22T19:45:59.7304445Z 🎯 Target variable detected: "n"
+2025-10-22T19:46:14.5553030Z 🎯 Target variable detected: "o"
+
+🔬 Chemistry/Physics Validator:
+  ✅ DETECTED
+  Activations: 9
+
+🎯 Options Consistency Validator:
+  ✅ DETECTED
+  Activations: 9
+
+❌ Errors Detected:
+  ⚠️  Errors found:
+2025-10-21T17:00:33  Errors (0)
+2025-10-21T17:15:56  Errors (0)
+2025-10-21T17:12:00  Errors (0)
+2025-10-20T17:59:54  Errors (0)
+2025-10-20T17:55:44  Errors (0)
+
+═══════════════════════════════════════════════════════════
+SUMMARY:
+═══════════════════════════════════════════════════════════
+Total log lines:     2454
+Validator activations:
+  - Physics: 9
+  - Math: 9
+  - Chemistry: 9
+  - Answer Verification: 18
+  - Options: 18
+
+Corrections made: 0
+0
+
