@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# Environment files
+.env
+.env.local
+.env.production
+*.env
+
+# Build outputs
+build/
+dist/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test results (will be generated fresh)
+backend/tests/test-results/
+**/test-results/
+
+# Temp files
+*.tmp
+temp/
+tmp/
+
+# Xcode
+**/xcuserdata/
+**/project.xcworkspace/
+*.xcuserstate
+DerivedData/
+
+# CocoaPods
+Pods/
+
+# Deployment artifacts
+*.zip
+deploy.zip
+
+# Secrets
+*.pem
+*.key
+secrets/
