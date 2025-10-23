@@ -245,10 +245,11 @@ function processStep(step, subject) {
   
   // Fall back to AI-provided options
   console.log('📝 Using AI-provided options for:', step.question);
+  console.log('📝 Expression field value:', step.expression || 'undefined/null');
   return {
     question: step.question,
     explanation: step.explanation,
-    expression: step.expression, // PRESERVE expression field even in fallback
+    expression: step.expression || null, // ALWAYS include expression, even if null (prevents undefined from being omitted)
     options: step.options,
     correctAnswer: step.correctAnswer,
     calculationMetadata: {
