@@ -222,6 +222,7 @@ function processCalculableStep(step, subject) {
     expression: step.expression,
     options: options.shuffled,
     correctAnswer: calculation.formatted,
+    calculated: true,  // Mark as calculated so openaiService knows to use this
     calculationMetadata: {
       rawResult: calculation.result,
       verified: true,

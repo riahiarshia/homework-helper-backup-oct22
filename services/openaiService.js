@@ -2080,15 +2080,18 @@ class OpenAIService {
               const processed = calculationEngine.processStep(step, validated.subject);
               
               if (processed.calculated) {
-                console.log(`✅ Step ${i + 1}: Calculation engine applied`);
+                console.log(`✅ Step ${i + 1}: Calculation engine calculated answer`);
                 console.log(`   Expression: ${processed.expression}`);
                 console.log(`   AI Answer: ${step.correctAnswer}`);
                 console.log(`   Calculated Answer: ${processed.correctAnswer}`);
                 console.log(`   Options: ${JSON.stringify(processed.options)}`);
-                
-                // Replace AI's answer with calculated one
-                validated.steps[i] = processed;
+              } else {
+                console.log(`📝 Step ${i + 1}: Using AI answer (no calculation)`);
+                console.log(`   Expression: ${processed.expression || 'null'}`);
               }
+              
+              // ALWAYS replace with processed step to ensure expression field is included
+              validated.steps[i] = processed;
             }
             console.log('✅ Calculation Engine: Complete');
           } catch (error) {
