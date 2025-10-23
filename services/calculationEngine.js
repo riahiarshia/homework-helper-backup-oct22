@@ -15,30 +15,60 @@ const optionGenerator = require('./optionGenerator');
 function extractExpressionFromQuestion(question) {
   if (!question) return null;
   
+  console.log(`🔍 Attempting to extract expression from: "${question}"`);
+  
   // Pattern 1: "3 + 4 = ?"
   const simpleArithmetic = question.match(/(\d+\s*[+\-×*/]\s*\d+)\s*=\s*\?/);
   if (simpleArithmetic) {
-    return simpleArithmetic[1].replace(/×/g, '*').replace(/÷/g, '/');
+    const expr = simpleArithmetic[1].replace(/×/g, '*').replace(/÷/g, '/');
+    console.log(`✅ Pattern 1 matched: "${expr}"`);
+    return expr;
   }
   
   // Pattern 2: "What is 3 + 4?"
   const whatIs = question.match(/what is\s+(\d+\s*[+\-×*/]\s*\d+)/i);
   if (whatIs) {
-    return whatIs[1].replace(/×/g, '*').replace(/÷/g, '/');
+    const expr = whatIs[1].replace(/×/g, '*').replace(/÷/g, '/');
+    console.log(`✅ Pattern 2 matched: "${expr}"`);
+    return expr;
   }
   
   // Pattern 3: "Calculate: 3 + 4"
   const calculate = question.match(/calculate:?\s+(\d+\s*[+\-×*/]\s*\d+)/i);
   if (calculate) {
-    return calculate[1].replace(/×/g, '*').replace(/÷/g, '/');
+    const expr = calculate[1].replace(/×/g, '*').replace(/÷/g, '/');
+    console.log(`✅ Pattern 3 matched: "${expr}"`);
+    return expr;
   }
   
   // Pattern 4: "36 ÷ 4 = ?"
   const division = question.match(/(\d+\s*÷\s*\d+)\s*=\s*\?/);
   if (division) {
-    return division[1].replace(/÷/g, '/');
+    const expr = division[1].replace(/÷/g, '/');
+    console.log(`✅ Pattern 4 matched: "${expr}"`);
+    return expr;
   }
   
+  // Pattern 5: "Problem X: What is Y + Z?" (more flexible)
+  const problemWhat = question.match(/what\s+is\s+([\d+\-×*/().\s]+)\?/i);
+  if (problemWhat) {
+    const expr = problemWhat[1].trim().replace(/×/g, '*').replace(/÷/g, '/');
+    // Verify it contains at least one operator
+    if (/[+\-*/()]/.test(expr)) {
+      console.log(`✅ Pattern 5 matched: "${expr}"`);
+      return expr;
+    }
+  }
+  
+  // Pattern 6: Any standalone arithmetic expression
+  const anyCalc = question.match(/(\d+\.?\d*\s*[+\-×*/]\s*\d+\.?\d*)/);
+  if (anyCalc) {
+    const expr = anyCalc[1].replace(/×/g, '*').replace(/÷/g, '/');
+    console.log(`✅ Pattern 6 matched: "${expr}"`);
+    return expr;
+  }
+  
+  console.log(`❌ No expression pattern matched`);
   return null;
 }
 
@@ -209,6 +239,7 @@ function processStep(step, subject) {
   return {
     question: step.question,
     explanation: step.explanation,
+    expression: step.expression, // PRESERVE expression field even in fallback
     options: step.options,
     correctAnswer: step.correctAnswer,
     calculationMetadata: {
