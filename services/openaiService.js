@@ -542,21 +542,21 @@ class OpenAIService {
           "explanation": "First, identify the given information",
           "options": ["Option A", "Option B", "Option C", "Option D"],
           "correctAnswer": "The sub-answer for THIS step only",
-          "expression": "(optional) Mathematical expression like '3 + 5' or '(3/9) * (2/8)' for Math/Physics/Chemistry"
+          "expression": "REQUIRED for Math/Physics/Chemistry calculations - see rules below"
         },
         {
           "question": "Problem 1: What is the next calculation we need?",
           "explanation": "Break down the problem into smaller parts",
           "options": ["Option A", "Option B", "Option C", "Option D"],
           "correctAnswer": "The sub-answer for THIS step only",
-          "expression": "(optional) Mathematical expression if this is a calculation step"
+          "expression": "REQUIRED if this is a calculation step"
         },
         {
           "question": "Problem 1: Now let's combine our results",
           "explanation": "Put it all together",
           "options": ["Option A", "Option B", "Option C", "Option D"],
           "correctAnswer": "The FINAL answer to Problem 1",
-          "expression": "(optional) Mathematical expression for the final calculation"
+          "expression": "REQUIRED for the final calculation"
         },
         ... (3-5 steps for Problem 1, FINAL answer only in LAST step)
         {
@@ -571,21 +571,100 @@ class OpenAIService {
       "finalAnswer": "Summary: Problem 1 = [answer], Problem 2 = [answer], Problem 3 = [answer], etc."
     }
 
-    ⚠️ MATHEMATICAL EXPRESSION RULES (NEW):
-    For Math, Physics, and Chemistry problems, include an "expression" field when a step involves calculation:
+    🚨 MANDATORY EXPRESSION FIELD RULES 🚨
     
-    EXAMPLES:
-    ✅ "expression": "3 + 5" (basic arithmetic)
-    ✅ "expression": "2 * (320 + 163)" (perimeter calculation)
-    ✅ "expression": "(3/9) * (2/8)" (probability)
-    ✅ "expression": "9.8 * 5" (physics calculation)
-    ✅ "expression": "sqrt(16)" (square root)
-    ✅ "expression": "3^2" (exponents, use ^ for power)
+    ⚠️ FOR MATH, PHYSICS, AND CHEMISTRY: YOU MUST INCLUDE "expression" FIELD FOR EVERY CALCULATION STEP!
     
-    ❌ Don't include "expression" for conceptual questions (like "What is the formula?")
-    ❌ Don't include "expression" for History, English, or other non-math subjects
+    WHY THIS IS CRITICAL:
+    - Your calculations can have errors (especially probability, multi-step problems)
+    - Our backend will calculate the expression with 100% accuracy using advanced math libraries
+    - This ensures students NEVER get wrong answers due to AI calculation mistakes
     
-    When you provide an "expression", our system will calculate it precisely to ensure 100% accuracy!
+    🔴 MANDATORY RULES:
+    
+    1️⃣ IF THE STEP INVOLVES ANY CALCULATION → YOU MUST PROVIDE "expression" FIELD
+    
+    Examples of calculation steps:
+    ✅ "What is 3 + 4?" → MUST include "expression": "3 + 4"
+    ✅ "Calculate the area" → MUST include "expression": "320 * 163"
+    ✅ "What is P(red)?" → MUST include "expression": "3/9"
+    ✅ "Multiply the probabilities" → MUST include "expression": "(3/9) * (2/8)"
+    ✅ "What is 2(l+w)?" → MUST include "expression": "2 * (320 + 163)"
+    
+    2️⃣ EXPRESSION FORMAT:
+    ✅ "3 + 5" (basic arithmetic)
+    ✅ "2 * (320 + 163)" (perimeter calculation)
+    ✅ "(3/9) * (2/8)" (probability without replacement)
+    ✅ "9.8 * 5" (physics calculation)
+    ✅ "sqrt(16)" (square root)
+    ✅ "3^2" (exponents, use ^ for power)
+    ✅ "(3/9) * (2/8) * (3/4)" (complex probability)
+    ✅ "320 * 163" (multiplication)
+    ✅ "144 / 12" (division)
+    
+    3️⃣ WHEN NOT TO INCLUDE EXPRESSION:
+    ❌ Conceptual questions: "What is the formula for area?" (no calculation)
+    ❌ Identification steps: "What information do we have?" (no calculation)
+    ❌ History/English subjects: "What caused the Civil War?" (no calculation)
+    
+    4️⃣ REAL EXAMPLE - THIS IS HOW YOU MUST RESPOND:
+    
+    Problem: "3 + 4 = ?"
+    
+    ✅ CORRECT RESPONSE:
+    {
+      "steps": [
+        {
+          "question": "What is 3 + 4?",
+          "explanation": "Add the two numbers",
+          "expression": "3 + 4",
+          "correctAnswer": "7",
+          "options": ["6", "7", "8", "9"]
+        }
+      ]
+    }
+    
+    ❌ WRONG - MISSING EXPRESSION:
+    {
+      "steps": [
+        {
+          "question": "What is 3 + 4?",
+          "explanation": "Add the two numbers",
+          "correctAnswer": "7",
+          "options": ["6", "7", "8", "9"]
+        }
+      ]
+    }
+    
+    5️⃣ COMPLEX EXAMPLE - PROBABILITY:
+    
+    Problem: "Bag has 3 red, 2 green, 4 blue. P(1 red, 1 green, at least 1 head)?"
+    
+    ✅ CORRECT:
+    Step 1: {
+      "question": "How many total marbles?",
+      "expression": "3 + 2 + 4",
+      "correctAnswer": "9"
+    }
+    Step 2: {
+      "question": "P(1 red AND 1 green without replacement)?",
+      "expression": "(3/9) * (2/8)",
+      "correctAnswer": "1/12"
+    }
+    Step 3: {
+      "question": "P(at least 1 head in 2 flips)?",
+      "expression": "3/4",
+      "correctAnswer": "0.75"
+    }
+    Step 4: {
+      "question": "Multiply the probabilities",
+      "expression": "(3/9) * (2/8) * (3/4)",
+      "correctAnswer": "1/16"
+    }
+    
+    ⚠️ FAILURE TO PROVIDE EXPRESSION FIELD = STUDENT GETS WRONG ANSWER!
+    
+    Remember: We're building this system because AI makes calculation errors. The expression field is how we ensure 100% accuracy!
 
     ⚠️ CRITICAL TUTORING PRINCIPLES:
     - **NEVER give the final answer in step 1** - that's not teaching!
