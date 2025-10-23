@@ -1,6 +1,7 @@
 const axios = require('axios');
 const config = require('../config');
 const usageTrackingService = require('./usageTrackingService');
+const calculationEngine = require('./calculationEngine');
 
 class OpenAIService {
   constructor() {
@@ -537,23 +538,32 @@ class OpenAIService {
       "difficulty": "easy / medium / hard",
       "steps": [
         {
-          "question": "Problem 1: [Identify the first problem and what it asks]",
-          "explanation": "What we need to find for Problem 1",
+          "question": "Problem 1: Let's start - what information do we have?",
+          "explanation": "First, identify the given information",
           "options": ["Option A", "Option B", "Option C", "Option D"],
-          "correctAnswer": "The exact correct option text"
+          "correctAnswer": "The sub-answer for THIS step only",
+          "expression": "(optional) Mathematical expression like '3 + 5' or '(3/9) * (2/8)' for Math/Physics/Chemistry"
         },
         {
-          "question": "Problem 1: [Next step for solving Problem 1]",
-          "explanation": "How to approach this step",
+          "question": "Problem 1: What is the next calculation we need?",
+          "explanation": "Break down the problem into smaller parts",
           "options": ["Option A", "Option B", "Option C", "Option D"],
-          "correctAnswer": "The exact correct option text"
+          "correctAnswer": "The sub-answer for THIS step only",
+          "expression": "(optional) Mathematical expression if this is a calculation step"
         },
-        ... (3-5 steps for Problem 1)
         {
-          "question": "Problem 2: [Identify the second problem]",
-          "explanation": "What we need to find for Problem 2",
+          "question": "Problem 1: Now let's combine our results",
+          "explanation": "Put it all together",
           "options": ["Option A", "Option B", "Option C", "Option D"],
-          "correctAnswer": "The exact correct option text"
+          "correctAnswer": "The FINAL answer to Problem 1",
+          "expression": "(optional) Mathematical expression for the final calculation"
+        },
+        ... (3-5 steps for Problem 1, FINAL answer only in LAST step)
+        {
+          "question": "Problem 2: What information do we have?",
+          "explanation": "Identify the given information for Problem 2",
+          "options": ["Option A", "Option B", "Option C", "Option D"],
+          "correctAnswer": "The sub-answer for THIS step only"
         },
         ... (3-5 steps for Problem 2)
         ... (continue for ALL problems on the sheet)
@@ -561,13 +571,49 @@ class OpenAIService {
       "finalAnswer": "Summary: Problem 1 = [answer], Problem 2 = [answer], Problem 3 = [answer], etc."
     }
 
+    ⚠️ MATHEMATICAL EXPRESSION RULES (NEW):
+    For Math, Physics, and Chemistry problems, include an "expression" field when a step involves calculation:
+    
+    EXAMPLES:
+    ✅ "expression": "3 + 5" (basic arithmetic)
+    ✅ "expression": "2 * (320 + 163)" (perimeter calculation)
+    ✅ "expression": "(3/9) * (2/8)" (probability)
+    ✅ "expression": "9.8 * 5" (physics calculation)
+    ✅ "expression": "sqrt(16)" (square root)
+    ✅ "expression": "3^2" (exponents, use ^ for power)
+    
+    ❌ Don't include "expression" for conceptual questions (like "What is the formula?")
+    ❌ Don't include "expression" for History, English, or other non-math subjects
+    
+    When you provide an "expression", our system will calculate it precisely to ensure 100% accuracy!
+
+    ⚠️ CRITICAL TUTORING PRINCIPLES:
+    - **NEVER give the final answer in step 1** - that's not teaching!
+    - Break complex problems into SUB-STEPS that build understanding
+    - Step 1: Identify given information (NOT the final answer!)
+    - Step 2-3: Calculate intermediate values
+    - Final Step: Combine for the complete answer
+    
+    EXAMPLE - Probability Problem:
+    Problem: "A bag has 3 red, 2 green, 4 blue marbles. Find P(1 red, 1 green, at least 1 head with 2 coin flips)"
+    
+    ❌ WRONG (What you're currently doing):
+    Step 1: "Find the probability" → correctAnswer: "1/8" (FINAL ANSWER IN STEP 1!)
+    
+    ✅ RIGHT (Break it down):
+    Step 1: "How many total marbles?" → "9 marbles"
+    Step 2: "What is P(1 red AND 1 green without replacement)?" → "1/6"
+    Step 3: "What is P(at least 1 head in 2 flips)?" → "3/4"
+    Step 4: "Multiply the probabilities: (1/6) × (3/4) = ?" → "1/8"
+
     GUIDING STYLE:
     - Use 3–5 short, targeted steps per problem
     - Label each step with which problem it's solving (e.g., "Problem 1:", "Problem 2:")
-    - Each question should build toward that problem's answer
+    - Each question should ask for ONE sub-calculation or piece of information
+    - The FINAL answer should only appear in the LAST step's correctAnswer
     - Include multiple choice options that make sense, but only one is fully correct
     - Do NOT reveal the correct answer inside the question or explanation text — only in "correctAnswer"
-    - For word problems: identify key facts, convert them into equations, solve step by step
+    - For word problems: identify key facts → convert to equations → calculate sub-parts → final answer
 
     SUBJECT BEHAVIOR:
     - Math: show equations, calculate step by step, include units
@@ -1945,6 +1991,33 @@ class OpenAIService {
         validated = validateQuestionTypeMatch(problemText, validated);  // NEW: Fix process/term questions
         validated = validateAnswerFormat(problemText, validated);  // NEW: Fix answer format issues
         validated = validateScientificNotation(validated);  // NEW: Handle scientific notation
+        
+        // Apply calculation engine for math-heavy subjects
+        if (validated.subject && validated.steps && Array.isArray(validated.steps)) {
+          console.log('🧮 Calculation Engine: Processing steps...');
+          try {
+            for (let i = 0; i < validated.steps.length; i++) {
+              const step = validated.steps[i];
+              const processed = calculationEngine.processStep(step, validated.subject);
+              
+              if (processed.calculated) {
+                console.log(`✅ Step ${i + 1}: Calculation engine applied`);
+                console.log(`   Expression: ${processed.expression}`);
+                console.log(`   AI Answer: ${step.correctAnswer}`);
+                console.log(`   Calculated Answer: ${processed.correctAnswer}`);
+                console.log(`   Options: ${JSON.stringify(processed.options)}`);
+                
+                // Replace AI's answer with calculated one
+                validated.steps[i] = processed;
+              }
+            }
+            console.log('✅ Calculation Engine: Complete');
+          } catch (error) {
+            console.error('❌ Calculation Engine Error:', error.message);
+            // Continue with validated result if calculation engine fails
+          }
+        }
+        
         validated = validateOptionsConsistency(validated);
         validated = validateAnswerAgainstConstraints(problemText, validated);  // Universal answer verification (rectangles)
         validated = this.validateResult(validated);
