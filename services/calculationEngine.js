@@ -76,13 +76,18 @@ function extractExpressionFromQuestion(question) {
  * Detects if a step contains a calculable expression
  */
 function isCalculable(step, subject) {
+  console.log(`🔍 isCalculable called for subject: "${subject}", question: "${step.question?.substring(0, 50)}..."`);
+  
   // Subjects that support calculation engine
   const calculableSubjects = ['Math', 'Mathematics', 'Physics', 'Chemistry'];
   const isCalculableSubject = calculableSubjects.some(s => 
     subject && subject.toLowerCase().includes(s.toLowerCase())
   );
   
+  console.log(`🔍 Is calculable subject? ${isCalculableSubject}`);
+  
   if (!isCalculableSubject) {
+    console.log(`❌ Not a calculable subject, skipping calculation engine`);
     return false;
   }
   
@@ -90,18 +95,22 @@ function isCalculable(step, subject) {
   if (step.expression && typeof step.expression === 'string') {
     const mathOperators = ['+', '-', '*', '/', '^', '(', 'sqrt', 'log', 'sin', 'cos', 'tan'];
     const hasMathOperator = mathOperators.some(op => step.expression.includes(op));
+    console.log(`✅ Expression field exists: "${step.expression}", has operator: ${hasMathOperator}`);
     return hasMathOperator;
   }
+  
+  console.log(`❓ No expression field, trying fallback extraction...`);
   
   // FALLBACK: Try to extract expression from question text
   const extractedExpression = extractExpressionFromQuestion(step.question);
   if (extractedExpression) {
     // Add extracted expression to step
     step.expression = extractedExpression;
-    console.log(`🔧 Extracted expression from question: "${extractedExpression}"`);
+    console.log(`🔧 SUCCESS! Extracted and added expression: "${extractedExpression}"`);
     return true;
   }
 
+  console.log(`❌ isCalculable returning false - no expression found`);
   return false;
 }
 
