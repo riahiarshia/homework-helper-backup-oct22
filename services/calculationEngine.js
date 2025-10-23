@@ -9,23 +9,70 @@ const math = require('mathjs');
 const optionGenerator = require('./optionGenerator');
 
 /**
+ * Extracts mathematical expression from question text
+ * Fallback when OpenAI doesn't provide expression field
+ */
+function extractExpressionFromQuestion(question) {
+  if (!question) return null;
+  
+  // Pattern 1: "3 + 4 = ?"
+  const simpleArithmetic = question.match(/(\d+\s*[+\-×*/]\s*\d+)\s*=\s*\?/);
+  if (simpleArithmetic) {
+    return simpleArithmetic[1].replace(/×/g, '*').replace(/÷/g, '/');
+  }
+  
+  // Pattern 2: "What is 3 + 4?"
+  const whatIs = question.match(/what is\s+(\d+\s*[+\-×*/]\s*\d+)/i);
+  if (whatIs) {
+    return whatIs[1].replace(/×/g, '*').replace(/÷/g, '/');
+  }
+  
+  // Pattern 3: "Calculate: 3 + 4"
+  const calculate = question.match(/calculate:?\s+(\d+\s*[+\-×*/]\s*\d+)/i);
+  if (calculate) {
+    return calculate[1].replace(/×/g, '*').replace(/÷/g, '/');
+  }
+  
+  // Pattern 4: "36 ÷ 4 = ?"
+  const division = question.match(/(\d+\s*÷\s*\d+)\s*=\s*\?/);
+  if (division) {
+    return division[1].replace(/÷/g, '/');
+  }
+  
+  return null;
+}
+
+/**
  * Detects if a step contains a calculable expression
  */
 function isCalculable(step, subject) {
-  if (!step.expression || typeof step.expression !== 'string') {
-    return false;
-  }
-
-  const mathOperators = ['+', '-', '*', '/', '^', '(', 'sqrt', 'log', 'sin', 'cos', 'tan'];
-  const hasMathOperator = mathOperators.some(op => step.expression.includes(op));
-  
   // Subjects that support calculation engine
   const calculableSubjects = ['Math', 'Mathematics', 'Physics', 'Chemistry'];
   const isCalculableSubject = calculableSubjects.some(s => 
     subject && subject.toLowerCase().includes(s.toLowerCase())
   );
+  
+  if (!isCalculableSubject) {
+    return false;
+  }
+  
+  // Check if expression field exists
+  if (step.expression && typeof step.expression === 'string') {
+    const mathOperators = ['+', '-', '*', '/', '^', '(', 'sqrt', 'log', 'sin', 'cos', 'tan'];
+    const hasMathOperator = mathOperators.some(op => step.expression.includes(op));
+    return hasMathOperator;
+  }
+  
+  // FALLBACK: Try to extract expression from question text
+  const extractedExpression = extractExpressionFromQuestion(step.question);
+  if (extractedExpression) {
+    // Add extracted expression to step
+    step.expression = extractedExpression;
+    console.log(`🔧 Extracted expression from question: "${extractedExpression}"`);
+    return true;
+  }
 
-  return hasMathOperator && isCalculableSubject;
+  return false;
 }
 
 /**
