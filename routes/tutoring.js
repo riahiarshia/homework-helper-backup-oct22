@@ -549,6 +549,7 @@ router.post('/session/start-text', async (req, res) => {
         }
 
         console.log(`📝 Analysis complete: ${analysisResult.steps.length} steps generated`);
+        console.log('🔬 CODE VERSION: EXPRESSION_FIELD_FIX_v1 (Oct 23 2025)');
         console.log('🔬 FIRST STEP FROM ANALYSIS:', JSON.stringify(analysisResult.steps[0], null, 2));
         console.log('🔬 Has expression field?', !!analysisResult.steps[0]?.expression);
 
