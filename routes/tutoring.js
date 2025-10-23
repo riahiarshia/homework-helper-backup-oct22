@@ -549,6 +549,8 @@ router.post('/session/start-text', async (req, res) => {
         }
 
         console.log(`📝 Analysis complete: ${analysisResult.steps.length} steps generated`);
+        console.log('🔬 FIRST STEP FROM ANALYSIS:', JSON.stringify(analysisResult.steps[0], null, 2));
+        console.log('🔬 Has expression field?', !!analysisResult.steps[0]?.expression);
 
         // Create session data
         const sessionId = `${userId || 'anonymous'}_${deviceId}_${Date.now()}`;
@@ -567,6 +569,8 @@ router.post('/session/start-text', async (req, res) => {
             lastActivity: new Date().toISOString(),
             isCompleted: false
         };
+
+        console.log('🔬 FIRST STEP IN SESSION:', JSON.stringify(session.steps[0], null, 2));
 
         // Return session
         res.json({
